@@ -1453,22 +1453,43 @@ function startFormCam() {
   fmCamOn = true;
   startQuagga('form-reader', function (code) {
     document.getElementById('f-ean').value = code;
-    var ex = inv.find(function (i) { return i.ean === code || i.code === code; });
+    var ex  = inv.find(function (i) { return i.ean === code || i.code === code; });
     var res = document.getElementById('formCamRes');
+
     if (ex) {
+      /* Trovato in magazzino → pre-compila tutto */
       res.className = 'cam-res s ok2';
-      res.textContent = '✅ Trovato: ' + ex.name + ' — dati pre-compilati!';
+      res.textContent = '✅ In magazzino: ' + ex.name + ' — dati pre-compilati!';
       ['code','ean','name','brand','price','size','color','compat','notes'].forEach(function (f) {
         var el = document.getElementById('f-' + f); if (el) el.value = ex[f] || '';
       });
       document.getElementById('f-cat').value = ex.cat || '';
       ts('✅ Pre-compilato: ' + ex.name);
+      stopFormCam();
     } else {
+      /* Non trovato → cerca online */
       res.className = 'cam-res s nf';
-      res.textContent = '⚠️ EAN ' + code + ' rilevato — articolo non in magazzino, completa i campi.';
-      ts('Barcode: ' + code, 'w');
+      res.textContent = '🌐 EAN ' + code + ' — ricerca online...';
+      stopFormCam();
+      lookupOnline(code).then(function(info) {
+        if (info && info.name) {
+          document.getElementById('f-name').value  = info.name;
+          document.getElementById('f-brand').value = info.brand || '';
+          var cat = mapCategory(info.category || '');
+          if (cat) document.getElementById('f-cat').value = cat;
+          res.className = 'cam-res s ok2';
+          res.textContent = '🌐 Trovato online: ' + info.name + (info.brand ? ' — ' + info.brand : '') + '. Verifica e completa.';
+          ts('🌐 Dati trovati online!', 'w');
+        } else {
+          res.className = 'cam-res s nf';
+          res.textContent = '⚠️ EAN ' + code + ' inserito — prodotto non trovato online. Completa manualmente.';
+          ts('Barcode rilevato: ' + code, 'w');
+        }
+      }).catch(function() {
+        res.className = 'cam-res s nf';
+        res.textContent = '⚠️ EAN ' + code + ' inserito — ricerca online non disponibile.';
+      });
     }
-    stopFormCam();
   }, function () { ts('Fotocamera non disponibile', 'e'); stopFormCam(); });
 }
 function stopFormCam() {
@@ -1496,37 +1517,146 @@ function stopBcCam() {
   document.getElementById('btnCC').style.display = 'none';
 }
 
-/* ---- BARCODE LOOKUP ---- */
+/* ---- ONLINE PRODUCT LOOKUP ---- */
+/*
+  Prova in cascata 3 API gratuite no-key:
+  1. Open Food Facts  (prodotti alimentari/consumer con EAN)
+  2. Open Beauty Facts (cosmetici)
+  3. UPC Item DB      (prodotti generici, incluso abbigliamento/sport)
+  Restituisce { name, brand, category, image } o null
+*/
+function lookupOnline(ean) {
+  /* normalizza il codice — rimuove spazi/trattini */
+  var code = ean.replace(/\s|-/g, '');
+
+  /* Helper: prova una URL fetch e restituisce la Promise */
+  function tryFetch(url, parser) {
+    return fetch(url, { signal: AbortSignal.timeout(5000) })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) { return d ? parser(d) : null; })
+      .catch(function() { return null; });
+  }
+
+  /* Parser Open Food Facts / Open Beauty Facts */
+  function parseOFF(d) {
+    var p = d.product;
+    if (!p) return null;
+    var name = p.product_name || p.product_name_it || p.product_name_en || '';
+    if (!name) return null;
+    return {
+      name:     name,
+      brand:    p.brands || '',
+      category: p.categories ? p.categories.split(',')[0].trim() : '',
+      image:    p.image_url || ''
+    };
+  }
+
+  /* Parser UPC Item DB */
+  function parseUPC(d) {
+    var items = d.items;
+    if (!items || !items.length) return null;
+    var it = items[0];
+    return {
+      name:     it.title || it.description || '',
+      brand:    it.brand || '',
+      category: it.category || '',
+      image:    (it.images && it.images[0]) ? it.images[0] : ''
+    };
+  }
+
+  /* Tenta in cascata */
+  return tryFetch(
+    'https://world.openfoodfacts.org/api/v2/product/' + code + '.json',
+    parseOFF
+  ).then(function(r) {
+    if (r && r.name) return r;
+    return tryFetch(
+      'https://world.openbeautyfacts.org/api/v2/product/' + code + '.json',
+      parseOFF
+    );
+  }).then(function(r) {
+    if (r && r.name) return r;
+    return tryFetch(
+      'https://api.upcitemdb.com/prod/trial/lookup?upc=' + code,
+      parseUPC
+    );
+  });
+}
+
+/* ---- BARCODE LOOKUP (magazzino + online) ---- */
 document.getElementById('bci').addEventListener('keydown', function (e) { if (e.key === 'Enter') lkb(); });
 
 function lkb() {
   var ean  = document.getElementById('bci').value.trim(); if (!ean) return;
   var stEl = document.getElementById('bcst'), pn = document.getElementById('bcp');
-  var ex   = inv.find(function (i) { return i.ean === ean || i.code === ean; });
+
+  /* 1) Cerca nel magazzino locale */
+  var ex = inv.find(function (i) { return i.ean === ean || i.code === ean; });
   if (ex) {
-    stEl.innerHTML = '<span class="bf">✅ Trovato: <strong>' + ex.name + '</strong></span>';
+    stEl.innerHTML = '<span class="bf">✅ In magazzino: <strong>' + ex.name + '</strong></span>';
     eBc = ex.id;
-    document.getElementById('pct').textContent  = 'Aggiorna Articolo';
-    document.getElementById('pcb').textContent  = ex.cat || '';
+    document.getElementById('pct').textContent = 'Aggiorna Articolo';
+    document.getElementById('pcb').textContent = ex.cat || '';
     ['code','ean','name','brand','price','qty','size','color','compat','notes'].forEach(function (f) {
       document.getElementById('b-' + f).value = ex[f] || '';
     });
     document.getElementById('b-cat').value = ex.cat || '';
     document.getElementById('bcb').textContent = '💾 Aggiorna';
-  } else {
-    stEl.innerHTML = '<span class="bnf">⚠️ Barcode non trovato. Compila i campi per aggiungere.</span>';
-    eBc = null;
-    document.getElementById('pct').textContent = 'Nuovo Articolo';
-    document.getElementById('pcb').textContent = 'NUOVO';
-    ['code','name','brand','price','size','color','compat','notes'].forEach(function (f) {
-      document.getElementById('b-' + f).value = '';
-    });
-    document.getElementById('b-ean').value = ean;
-    document.getElementById('b-qty').value = '1';
-    document.getElementById('b-cat').value = '';
-    document.getElementById('bcb').textContent = '✅ Salva';
+    pn.classList.add('s');
+    return;
   }
+
+  /* 2) Non trovato localmente → cerca online */
+  stEl.innerHTML = '<span style="color:var(--yw)">🌐 Ricerca online del prodotto...</span>';
+  eBc = null;
+  /* apri subito il pannello con EAN pre-compilato mentre carica */
+  document.getElementById('pct').textContent = 'Nuovo Articolo';
+  document.getElementById('pcb').textContent = 'NUOVO';
+  ['code','name','brand','price','size','color','compat','notes'].forEach(function (f) {
+    document.getElementById('b-' + f).value = '';
+  });
+  document.getElementById('b-ean').value = ean;
+  document.getElementById('b-qty').value = '1';
+  document.getElementById('b-cat').value = '';
+  document.getElementById('bcb').textContent = '✅ Salva nel Magazzino';
   pn.classList.add('s');
+
+  lookupOnline(ean).then(function(info) {
+    if (info && info.name) {
+      /* Compilazione automatica dai dati online */
+      document.getElementById('b-name').value  = info.name;
+      document.getElementById('b-brand').value = info.brand || '';
+      /* Prova a mappare la categoria */
+      var cat = mapCategory(info.category || '');
+      if (cat) document.getElementById('b-cat').value = cat;
+
+      stEl.innerHTML = '<span class="bf">🌐 Trovato online: <strong>' + info.name + '</strong>' +
+        (info.brand ? ' — ' + info.brand : '') + '</span>';
+      ts('🌐 Dati trovati online — verifica e salva!', 'w');
+    } else {
+      stEl.innerHTML = '<span class="bnf">⚠️ Prodotto non trovato online. Inserisci i dati manualmente.</span>';
+    }
+  }).catch(function() {
+    stEl.innerHTML = '<span class="bnf">⚠️ Ricerca online non disponibile. Inserisci manualmente.</span>';
+  });
+}
+
+/* Mappatura categoria grezza → categorie del magazzino */
+function mapCategory(raw) {
+  var r = (raw || '').toLowerCase();
+  if (r.match(/casco|helmet/))                    return 'Caschi';
+  if (r.match(/abbig|maglia|pantalon|jersey|pant/)) return 'Abbigliamento';
+  if (r.match(/guant|stival|boot|glove|protez/)) return 'Protezioni';
+  if (r.match(/filtro|motore|engine|ricamb/))    return 'Ricambi Motore';
+  if (r.match(/telaio|sospen|fork|frame/))       return 'Telaio e Sospensioni';
+  if (r.match(/fren|brake/))                     return 'Freni';
+  if (r.match(/trasmiss|chain|catena|sprocket/)) return 'Trasmissione';
+  if (r.match(/scarico|exhaust|muffler/))        return 'Scarico';
+  if (r.match(/elettr|battery|batteria|spark/))  return 'Elettrica';
+  if (r.match(/pneumat|tyre|tire|gomm/))         return 'Pneumatici';
+  if (r.match(/olio|lubr|oil|grease/))           return 'Lubrificanti';
+  if (r.match(/access/))                         return 'Accessori';
+  return '';
 }
 function sbf() {
   var n = document.getElementById('b-name').value.trim();
