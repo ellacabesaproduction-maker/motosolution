@@ -1087,6 +1087,180 @@ body {
   .tc { bottom: calc(var(--botH) + 10px); right: 10px; left: 10px; }
   .ts { text-align: center; }
 }
+
+/* =============================================
+   SEZIONE VENDITE
+============================================= */
+.v-hero {
+  background: linear-gradient(160deg,#0e0002 0%,#1c0005 45%,#090001 100%);
+  border: 1px solid var(--brr); border-radius: 20px;
+  padding: clamp(24px,5vw,40px); margin-bottom: 18px;
+  position: relative; overflow: hidden; text-align: center;
+}
+.v-hero::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 50% -10%, rgba(232,0,13,.22) 0%, transparent 65%);
+  pointer-events:none;
+}
+.v-hero-title {
+  font-family:'Orbitron',sans-serif;
+  font-size: clamp(17px,4.5vw,26px); font-weight:900;
+  letter-spacing:3px; text-transform:uppercase; color:#fff;
+  position:relative; z-index:1; margin-bottom:5px;
+}
+.v-hero-title em { color:var(--red); font-style:normal; }
+.v-hero-sub {
+  font-family:'Rajdhani',sans-serif; font-size:13px;
+  color:var(--mt); letter-spacing:.8px; margin-bottom:26px;
+  position:relative; z-index:1;
+}
+
+/* scanner row */
+.v-scan-row {
+  display:flex; gap:10px; max-width:500px;
+  margin:0 auto 10px; position:relative; z-index:1;
+}
+.v-inp {
+  flex:1; background:rgba(0,0,0,.55);
+  border:2px solid var(--red); color:var(--tx);
+  padding:15px 18px; border-radius:12px;
+  font-size:17px; font-family:monospace;
+  box-shadow:0 0 22px var(--rg),inset 0 0 10px rgba(232,0,13,.04);
+  transition:box-shadow .25s; -webkit-appearance:none;
+}
+.v-inp:focus {
+  outline:none;
+  box-shadow:0 0 42px rgba(232,0,13,.6),inset 0 0 18px rgba(232,0,13,.08);
+}
+.v-inp::placeholder { color:rgba(255,255,255,.22); }
+.v-cam-btn {
+  background:var(--c2); border:2px solid var(--brr); color:var(--red);
+  border-radius:12px; padding:0 16px; font-size:22px; cursor:pointer;
+  transition:all .2s; flex-shrink:0; -webkit-tap-highlight-color:transparent;
+}
+.v-cam-btn:hover,.v-cam-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
+.v-status {
+  font-family:'Rajdhani',sans-serif; font-size:14px;
+  font-weight:600; min-height:22px;
+  position:relative; z-index:1; margin-bottom:2px;
+}
+
+/* inline camera */
+.v-cam-wrap { max-width:460px; margin:0 auto 12px; display:none; position:relative; z-index:1; }
+.v-cam-wrap.s { display:block; animation:secIn .2s ease; }
+
+/* product card */
+.v-card-wrap { max-width:500px; margin:0 auto; display:none; position:relative; z-index:1; }
+.v-card-wrap.s { display:block; animation:vfIn .38s cubic-bezier(.2,1.3,.4,1); }
+@keyframes vfIn {
+  0%   { opacity:0; transform:scale(.9) translateY(14px); }
+  100% { opacity:1; transform:scale(1) translateY(0); }
+}
+.v-card {
+  background:linear-gradient(135deg,var(--c2),var(--c1));
+  border:1px solid var(--brr); border-radius:16px;
+  padding:20px 22px; position:relative;
+  box-shadow:0 4px 28px rgba(232,0,13,.14);
+  display:flex; align-items:center; gap:16px;
+}
+.v-card-icon { font-size:38px; flex-shrink:0; }
+.v-card-body { flex:1; min-width:0; }
+.v-card-name { font-size:16px; font-weight:700; margin-bottom:3px; }
+.v-card-meta { font-size:12px; color:var(--mt); margin-bottom:12px; }
+.v-card-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.v-qty-ctrl {
+  display:flex; align-items:center; gap:6px;
+  background:var(--c3); border-radius:8px; padding:6px 10px;
+}
+.v-qty-btn {
+  background:none; border:none; color:var(--red);
+  font-size:22px; font-weight:700; cursor:pointer;
+  line-height:1; padding:1px 5px; transition:opacity .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.v-qty-btn:active { opacity:.5; }
+.v-qty-val {
+  font-family:'Orbitron',sans-serif; font-size:20px;
+  font-weight:800; min-width:26px; text-align:center;
+}
+.v-qty-lbl { font-size:10px; color:var(--mt); font-family:'Rajdhani',sans-serif; letter-spacing:1px; }
+.v-stock {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;
+}
+.v-stock.ok  { background:rgba(0,200,83,.12);  color:var(--gr); }
+.v-stock.low { background:rgba(255,214,0,.12); color:var(--yw); }
+.v-stock.out { background:rgba(255,68,68,.12); color:#f55; }
+.v-sell-btn {
+  background:var(--red); color:#fff; border:none;
+  border-radius:10px; padding:11px 20px;
+  font-family:'Rajdhani',sans-serif; font-size:14px;
+  font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  cursor:pointer; transition:all .2s; white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.v-sell-btn:hover { background:var(--rdk); box-shadow:0 4px 16px var(--rg); }
+.v-sell-btn:disabled { opacity:.35; cursor:not-allowed; }
+.v-sold-overlay {
+  position:absolute; inset:0; border-radius:16px;
+  background:rgba(0,200,83,.1); border:1px solid var(--gr);
+  display:flex; align-items:center; justify-content:center;
+  font-size:52px; opacity:0; pointer-events:none; transition:opacity .28s;
+}
+.v-sold-overlay.on { opacity:1; }
+
+/* session bar */
+.v-session {
+  background:var(--c1); border:1px solid var(--br); border-radius:12px;
+  padding:14px 18px; margin-bottom:16px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:10px;
+}
+.v-stat { text-align:center; }
+.v-stat-val {
+  font-family:'Orbitron',sans-serif; font-size:20px;
+  font-weight:800; line-height:1;
+}
+.v-stat-lbl {
+  font-family:'Rajdhani',sans-serif; font-size:9px;
+  letter-spacing:2px; text-transform:uppercase; color:var(--mt); margin-top:3px;
+}
+
+/* log */
+.v-log-hdr {
+  padding:14px 16px 4px; font-weight:700; font-size:10px;
+  text-transform:uppercase; letter-spacing:2px; color:var(--mt);
+  font-family:'Rajdhani',sans-serif;
+}
+.v-log-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 16px; border-bottom:1px solid var(--br);
+  animation:secIn .3s ease;
+}
+.v-log-row:last-child { border-bottom:none; }
+.v-log-name { font-size:13px; font-weight:600; }
+.v-log-meta { font-size:11px; color:var(--mt); margin-top:2px; }
+.v-log-badge {
+  background:rgba(232,0,13,.1); color:var(--red);
+  border:1px solid var(--brr); border-radius:6px;
+  padding:3px 10px; font-size:12px; font-weight:700;
+  font-family:'Rajdhani',sans-serif; white-space:nowrap; margin-left:12px;
+}
+.v-log-empty {
+  text-align:center; padding:28px 20px; color:var(--mt);
+  font-family:'Rajdhani',sans-serif; font-size:13px; letter-spacing:.5px;
+}
+
+@media(max-width:640px){
+  .v-scan-row { flex-direction:column; }
+  .v-cam-btn  { padding:13px; font-size:20px; }
+  .v-card     { flex-direction:column; align-items:flex-start; gap:12px; }
+  .v-card-icon{ font-size:30px; }
+  .v-sell-btn { width:100%; justify-content:center; text-align:center; }
+  .v-qty-ctrl { flex:1; justify-content:center; }
+}
+
+
 </style>
 </head>
 <body>
@@ -2277,178 +2451,6 @@ function cbp() {
   document.getElementById('bci').value = '';
   document.getElementById('bcst').innerHTML = '';
   eBc = null;
-}
-
-/* =============================================
-   SEZIONE VENDITE
-============================================= */
-.v-hero {
-  background: linear-gradient(160deg,#0e0002 0%,#1c0005 45%,#090001 100%);
-  border: 1px solid var(--brr); border-radius: 20px;
-  padding: clamp(24px,5vw,40px); margin-bottom: 18px;
-  position: relative; overflow: hidden; text-align: center;
-}
-.v-hero::before {
-  content:''; position:absolute; inset:0;
-  background: radial-gradient(ellipse at 50% -10%, rgba(232,0,13,.22) 0%, transparent 65%);
-  pointer-events:none;
-}
-.v-hero-title {
-  font-family:'Orbitron',sans-serif;
-  font-size: clamp(17px,4.5vw,26px); font-weight:900;
-  letter-spacing:3px; text-transform:uppercase; color:#fff;
-  position:relative; z-index:1; margin-bottom:5px;
-}
-.v-hero-title em { color:var(--red); font-style:normal; }
-.v-hero-sub {
-  font-family:'Rajdhani',sans-serif; font-size:13px;
-  color:var(--mt); letter-spacing:.8px; margin-bottom:26px;
-  position:relative; z-index:1;
-}
-
-/* scanner row */
-.v-scan-row {
-  display:flex; gap:10px; max-width:500px;
-  margin:0 auto 10px; position:relative; z-index:1;
-}
-.v-inp {
-  flex:1; background:rgba(0,0,0,.55);
-  border:2px solid var(--red); color:var(--tx);
-  padding:15px 18px; border-radius:12px;
-  font-size:17px; font-family:monospace;
-  box-shadow:0 0 22px var(--rg),inset 0 0 10px rgba(232,0,13,.04);
-  transition:box-shadow .25s; -webkit-appearance:none;
-}
-.v-inp:focus {
-  outline:none;
-  box-shadow:0 0 42px rgba(232,0,13,.6),inset 0 0 18px rgba(232,0,13,.08);
-}
-.v-inp::placeholder { color:rgba(255,255,255,.22); }
-.v-cam-btn {
-  background:var(--c2); border:2px solid var(--brr); color:var(--red);
-  border-radius:12px; padding:0 16px; font-size:22px; cursor:pointer;
-  transition:all .2s; flex-shrink:0; -webkit-tap-highlight-color:transparent;
-}
-.v-cam-btn:hover,.v-cam-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
-.v-status {
-  font-family:'Rajdhani',sans-serif; font-size:14px;
-  font-weight:600; min-height:22px;
-  position:relative; z-index:1; margin-bottom:2px;
-}
-
-/* inline camera */
-.v-cam-wrap { max-width:460px; margin:0 auto 12px; display:none; position:relative; z-index:1; }
-.v-cam-wrap.s { display:block; animation:secIn .2s ease; }
-
-/* product card */
-.v-card-wrap { max-width:500px; margin:0 auto; display:none; position:relative; z-index:1; }
-.v-card-wrap.s { display:block; animation:vfIn .38s cubic-bezier(.2,1.3,.4,1); }
-@keyframes vfIn {
-  0%   { opacity:0; transform:scale(.9) translateY(14px); }
-  100% { opacity:1; transform:scale(1) translateY(0); }
-}
-.v-card {
-  background:linear-gradient(135deg,var(--c2),var(--c1));
-  border:1px solid var(--brr); border-radius:16px;
-  padding:20px 22px; position:relative;
-  box-shadow:0 4px 28px rgba(232,0,13,.14);
-  display:flex; align-items:center; gap:16px;
-}
-.v-card-icon { font-size:38px; flex-shrink:0; }
-.v-card-body { flex:1; min-width:0; }
-.v-card-name { font-size:16px; font-weight:700; margin-bottom:3px; }
-.v-card-meta { font-size:12px; color:var(--mt); margin-bottom:12px; }
-.v-card-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.v-qty-ctrl {
-  display:flex; align-items:center; gap:6px;
-  background:var(--c3); border-radius:8px; padding:6px 10px;
-}
-.v-qty-btn {
-  background:none; border:none; color:var(--red);
-  font-size:22px; font-weight:700; cursor:pointer;
-  line-height:1; padding:1px 5px; transition:opacity .15s;
-  -webkit-tap-highlight-color:transparent;
-}
-.v-qty-btn:active { opacity:.5; }
-.v-qty-val {
-  font-family:'Orbitron',sans-serif; font-size:20px;
-  font-weight:800; min-width:26px; text-align:center;
-}
-.v-qty-lbl { font-size:10px; color:var(--mt); font-family:'Rajdhani',sans-serif; letter-spacing:1px; }
-.v-stock {
-  display:inline-flex; align-items:center; gap:4px;
-  padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;
-}
-.v-stock.ok  { background:rgba(0,200,83,.12);  color:var(--gr); }
-.v-stock.low { background:rgba(255,214,0,.12); color:var(--yw); }
-.v-stock.out { background:rgba(255,68,68,.12); color:#f55; }
-.v-sell-btn {
-  background:var(--red); color:#fff; border:none;
-  border-radius:10px; padding:11px 20px;
-  font-family:'Rajdhani',sans-serif; font-size:14px;
-  font-weight:700; text-transform:uppercase; letter-spacing:1px;
-  cursor:pointer; transition:all .2s; white-space:nowrap;
-  -webkit-tap-highlight-color:transparent;
-}
-.v-sell-btn:hover { background:var(--rdk); box-shadow:0 4px 16px var(--rg); }
-.v-sell-btn:disabled { opacity:.35; cursor:not-allowed; }
-.v-sold-overlay {
-  position:absolute; inset:0; border-radius:16px;
-  background:rgba(0,200,83,.1); border:1px solid var(--gr);
-  display:flex; align-items:center; justify-content:center;
-  font-size:52px; opacity:0; pointer-events:none; transition:opacity .28s;
-}
-.v-sold-overlay.on { opacity:1; }
-
-/* session bar */
-.v-session {
-  background:var(--c1); border:1px solid var(--br); border-radius:12px;
-  padding:14px 18px; margin-bottom:16px;
-  display:flex; align-items:center; justify-content:space-between;
-  flex-wrap:wrap; gap:10px;
-}
-.v-stat { text-align:center; }
-.v-stat-val {
-  font-family:'Orbitron',sans-serif; font-size:20px;
-  font-weight:800; line-height:1;
-}
-.v-stat-lbl {
-  font-family:'Rajdhani',sans-serif; font-size:9px;
-  letter-spacing:2px; text-transform:uppercase; color:var(--mt); margin-top:3px;
-}
-
-/* log */
-.v-log-hdr {
-  padding:14px 16px 4px; font-weight:700; font-size:10px;
-  text-transform:uppercase; letter-spacing:2px; color:var(--mt);
-  font-family:'Rajdhani',sans-serif;
-}
-.v-log-row {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:11px 16px; border-bottom:1px solid var(--br);
-  animation:secIn .3s ease;
-}
-.v-log-row:last-child { border-bottom:none; }
-.v-log-name { font-size:13px; font-weight:600; }
-.v-log-meta { font-size:11px; color:var(--mt); margin-top:2px; }
-.v-log-badge {
-  background:rgba(232,0,13,.1); color:var(--red);
-  border:1px solid var(--brr); border-radius:6px;
-  padding:3px 10px; font-size:12px; font-weight:700;
-  font-family:'Rajdhani',sans-serif; white-space:nowrap; margin-left:12px;
-}
-.v-log-empty {
-  text-align:center; padding:28px 20px; color:var(--mt);
-  font-family:'Rajdhani',sans-serif; font-size:13px; letter-spacing:.5px;
-}
-
-@media(max-width:640px){
-  .v-scan-row { flex-direction:column; }
-  .v-cam-btn  { padding:13px; font-size:20px; }
-  .v-card     { flex-direction:column; align-items:flex-start; gap:12px; }
-  .v-card-icon{ font-size:30px; }
-  .v-sell-btn { width:100%; justify-content:center; text-align:center; }
-  .v-qty-ctrl { flex:1; justify-content:center; }
 }
 
 /* ================================================================
